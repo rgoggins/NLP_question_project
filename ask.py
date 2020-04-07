@@ -11,6 +11,9 @@
 
 '''
 
+import random
+from tokenizer import *
+
 # Passed in documents and a number 'n' of questions we are required to generate
 # Load in the tokenized data
 # Create NER table
@@ -18,4 +21,32 @@
 # Split up questions equally into Who? What? Is/was? (only binary questions for now)
 # A question should have its answer in a single sentence
 
-import tokenizer
+
+tokenized_data = None # call whatever tokenizer.py function gets the data
+num_questions = 10 # this is also passed in
+
+filename = "" #documents
+
+tk = Tokenizer(filename)
+
+sentiment_q = False
+
+
+def generate_binary_question(root_sentence):
+    # Of the format 'is it correct'
+
+    if (sentiment_q == False):
+        pass
+
+    phrase = "Is it correct that "
+
+
+
+
+questions = []
+
+def generate_questions(ques_int):
+    for entry in range(ques_int):
+        root_sen =
+        questions.append(generate_binary_question)
+>>>>>>> b0f350c5ec4f6cd514f276f68067ca84164c6490
