@@ -17,3 +17,5 @@
 # Find most frequent entities referenced by document
 # Split up questions equally into Who? What? Is/was? (only binary questions for now)
 # A question should have its answer in a single sentence
+
+import tokenizer
