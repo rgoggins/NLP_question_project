@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+
 '''
 @file answer.py
 @brief A python script for generating answers to a series of questions
@@ -18,27 +18,25 @@ from tokenizer import *
 from textblob import Word
 nlp = load("en_core_web_md")
 
-def get_relevant_sentence(corpus, question):
-    # CORPUS MUST BE A Tokenizer object!!!!!
-
-    most_relevant = None
-    lowest_edit_dist = float('inf')
-
-    for sent in corpus.blob.sentences:
-        sentstr = str(sent)
-        levenshtein = calculateLevenshteinDistance(question, sentstr)
-        if (levenshtein < lowest_edit_dist):
-            lowest_edit_dist = levenshtein
-            most_relevant = sent
-
-    return most_relevant
-
-
 class Answer:
     def __init__(self, corpus):
         #TODO process corpus based on tokenization
         self.corpus = corpus
+        self.tb = Tokenizer(corpus)
         self.NLP = nlp(corpus)
+
+    def get_relevant_sentence(self, question):
+        most_relevant = None
+        lowest_edit_dist = float('inf')
+
+        for sent in self.tb.blob.sentences:
+            sentstr = str(sent)
+            levenshtein = calculateLevenshteinDistance(question, sentstr)
+            if (levenshtein < lowest_edit_dist):
+                lowest_edit_dist = levenshtein
+                most_relevant = sent
+
+        return most_relevant
 
     #NOTE: final version will only have self and question parameter.
     def answer_question(self, question, most_relevant_sentence):
