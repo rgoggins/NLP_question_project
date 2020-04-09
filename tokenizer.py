@@ -5,8 +5,8 @@ class Tokenizer:
         f = open(input_file, "r+", encoding="utf-8")
         text = f.read()
         self.blob = TextBlob(text)
-        for sentence in blob.sentences:
-            print(sentence.sentiment.polarity)
+        # for sentence in self.blob.sentences:
+        #     print(sentence.sentiment.polarity)
 
 
 
