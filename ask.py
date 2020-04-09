@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 '''
 @file ask.py
 @brief A python script for generating questions about a given document
