@@ -10,6 +10,10 @@
 @author Oliver Pennington <oop@cmu.edu>
 
 '''
+from tokenizer import *
+import spacy
+model = spacy.load("en_core_web_md")
+
 class Answer:
     def __init__(self, corpus):
         #TODO process corpus based on tokenization
@@ -18,6 +22,7 @@ class Answer:
     #NOTE: final version will only have self and question parameter.
     def answer_question(self, question, most_relevant_sentence):
         #tokenize question
+        tk = TextBlob(question)
 
         #get sentence most relevant to the question
         relevant_sentence = most_relevant_sentence
@@ -46,12 +51,28 @@ class Answer:
             return "TIME"
 
         #YES/NO QUESTION
-        yes_no_words = ["Is", "Does"]  #NOTE: expand these
+        yes_no_words = ["Is", "Does", "Are", "Was", "Were", "Did", "Has", "Could", "Will", "Have"]
         if first_question_word in yes_no_words:
-            pass
-            #DO YES/NO CASE
-            #TODO justin write your stuff here
-            return "YES/NO"
+            q_tags = tk.pos_tags
+            keyword = ""
+            for (token, tag) in q_tags:
+                if tag == 'NN' or tag == 'NNS' or tag == 'NNP' or tag == "NNPS":
+                    keyword = token
+            if keyword in relevant_sentence:
+                prev = ""
+                # assumes that relevant_sentence is a string
+                for token in model(relevant_sentence):
+                    if str(token) == str(keyword):
+                        if prev == 'neg':
+                            return "No"
+                        else:
+                            return "Yes"
+                    if token.dep_ == 'neg':
+                        prev = 'neg'
+                    else:
+                        prev = ""
+            else:
+                return "No"
 
         #REASON (WHY)
         #NOTE: Probably don't have to do this, oddball questins
