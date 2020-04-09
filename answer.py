@@ -12,6 +12,7 @@
 '''
 from tokenizer import *
 import spacy
+from textblob import Word
 model = spacy.load("en_core_web_md")
 
 class Answer:
@@ -51,28 +52,28 @@ class Answer:
             return "TIME"
 
         #YES/NO QUESTION
-        yes_no_words = ["Is", "Does", "Are", "Was", "Were", "Did", "Has", "Could", "Will", "Have"]
+        yes_no_words = ["Is", "Does", "Are", "Was", "Were", "Did", "Has", "Could", "Will", "Have", "Can"]
         if first_question_word in yes_no_words:
-            q_tags = tk.pos_tags
+            q_tags = tk.tags
             keyword = ""
+            key_tag = ""
             for (token, tag) in q_tags:
-                if tag == 'NN' or tag == 'NNS' or tag == 'NNP' or tag == "NNPS":
+                if tag[0] == 'N' or tag[0] == "V":
                     keyword = token
-            if keyword in relevant_sentence:
-                prev = ""
-                # assumes that relevant_sentence is a string
-                for token in model(relevant_sentence):
-                    if str(token) == str(keyword):
-                        if prev == 'neg':
-                            return "No"
-                        else:
-                            return "Yes"
-                    if token.dep_ == 'neg':
-                        prev = 'neg'
-                    else:
-                        prev = ""
-            else:
-                return "No"
+                    key_tag = tag
+
+            keyword_found = False
+            neg = False
+            for token in model(relevant_sentence):
+                if str(token) == keyword or (key_tag[0] == "V" and Word(str(token)).lemmatize("v") == Word(keyword).lemmatize("v")):
+                    keyword_found = True
+                if token.dep_ == 'neg':
+                    neg = not neg
+
+            if keyword_found:
+                if neg: return "No"
+                else: return "Yes"
+            return "No"
 
         #REASON (WHY)
         #NOTE: Probably don't have to do this, oddball questins
@@ -98,12 +99,21 @@ def test():
 
     # YES/NO
     q2_corpus = "Up is not down. The sky is not red. The sky is blue."
-    q2_most_relevant_sentence = "The sky is blue."
+    q2_most_relevant_sentence = "The sky is not red."
     q2_answerer = Answer(q2_corpus)
-    q2_question = "Is the sky blue?"
+    q2_question = "Is the sky red"
     q2_ans = q2_answerer.answer_question(q2_question, q2_most_relevant_sentence)
     print("Q2 Question: \"", q2_question, "\"", sep = "")
     print("Q2 Answer:   \"", q2_ans, "\"", sep = "")
+    print("---------------------")
+
+    q3_corpus = "Kobe played basketball everyday. He never played soccer."
+    q3_most_relevant_sentence = "Kobe played basketball everyday"
+    q3_answerer = Answer(q3_corpus)
+    q3_question = "Did Kobe play basketball?"
+    q3_ans = q3_answerer.answer_question(q3_question, q3_most_relevant_sentence)
+    print("Q3 Question: \"", q3_question, "\"", sep="")
+    print("Q3 Answer:   \"", q3_ans, "\"", sep="")
     print("---------------------")
 
 
