@@ -69,6 +69,8 @@ class Answer:
                             return "Yes"
                     if token.dep_ == 'neg':
                         prev = 'neg'
+                    else:
+                        prev = ""
             else:
                 return "No"
 
