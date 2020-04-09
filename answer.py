@@ -15,6 +15,7 @@ import nltk
 from spacy import load
 from textblob import TextBlob
 nlp = load("en_core_web_sm")
+from tokenizer import *
 
 
 class Answer:
@@ -28,6 +29,7 @@ class Answer:
         #tokenize question
         tk = TextBlob(question)
         qcorpus = nlp(question)
+
 
         #get sentence most relevant to the question
         relevant_sentence = most_relevant_sentence
@@ -107,7 +109,7 @@ class Answer:
                 prev = ""
                 # assumes that relevant_sentence is a string
                 for token in nlp(relevant_sentence):
-                    if token.text == str(keyword):
+                    if str(token) == str(keyword):
                         if prev == 'neg':
                             return "No"
                         else:
@@ -124,6 +126,8 @@ class Answer:
                     return entity.text
             return "COULD NOT FIND THING"
         #REASON (WHY), WHICH
+
+        #REASON (WHY)
         #NOTE: Probably don't have to do this, oddball questins
         else:
             pass
