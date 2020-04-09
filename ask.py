@@ -46,7 +46,7 @@ def generate_who_question(root_sentence):
                     topic = " ".join(c[0] for c in ch)
                     break
     if (topic == None):
-        print("No PERSON found in the sentence: " + sentencestr)
+        # print("No PERSON found in the sentence: " + sentencestr)
         return None
 
 
@@ -80,12 +80,10 @@ def generate_who_question(root_sentence):
 
     altered = re.sub(fn_string, name_replacement, sentencestr)
     # print("Altered: " + str(altered))
-    altered = altered[:-1] + "?"
+    altered = altered[0].upper() + altered[1:-1] + "?"
+
     return altered
 
-
-
-generate_who_question(sent)
 
 def generate_binary_question(root_sentence):
     phrase = "Is it correct that "
@@ -96,8 +94,8 @@ def generate_binary_question(root_sentence):
         if (random.randint(1,2) == 1):
             number = int(value)
             if (abs(number - 1990) < 30):
-                return " " + str(random.randint(1,30) + 1990)
-            return " " + str(number*2) + ""
+                return " " + str(random.randint(1,30) + 1990) + ""
+            return " " + str(number*2) + " "
         else:
             return str(value)
     match = '\s\d\d*'
@@ -127,11 +125,12 @@ if __name__ == "__main__":
         sen = tk.blob.sentences[index % len(tk.blob.sentences)]
         # print("Len of questions: " + str(len(questions)))
         # print("Sentence " + str(index) + " w polarity " + str(sen.sentiment.polarity) + " is " + str(sen[:min(40,len(sen))]))
-        if (abs(sen.sentiment.polarity) > (0.8**index)) and ('\n' not in str(sen)) and ("PRP" not in sen.tags[0][1]):
+        if (abs(sen.sentiment.polarity) > (0.9**index)) and ('\n' not in str(sen)) and ("PRP" not in sen.tags[0][1]):
             # if (index < len(tk.blob.sentences)):
             questions.append(generate_binary_question(sen))
             sentence_roots.append(sen)
-        elif ('\n' not in str(sen)) and (abs(sen.sentiment.polarity) >0.2):
+        elif ('\n' not in str(sen)) and (abs(sen.sentiment.polarity) >0.1) and (len(sen.words) > 10):
+            # print("Len of sen: " + str(len(sen.words)))
             output = generate_who_question(sen)
             if (output != None):
                 questions.append(output)
