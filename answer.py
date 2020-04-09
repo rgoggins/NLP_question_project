@@ -12,11 +12,27 @@
 import nltk
 # nltk.download("punkt")
 # nltk.download("averaged_perceptron_tagger")
-
+from edit_dist import *
 from spacy import load
 from tokenizer import *
 from textblob import Word
 nlp = load("en_core_web_md")
+
+def get_relevant_sentence(corpus, question):
+    # CORPUS MUST BE A Tokenizer object!!!!!
+
+    most_relevant = None
+    lowest_edit_dist = float('inf')
+
+    for sent in corpus.blob.sentences:
+        sentstr = str(sent)
+        levenshtein = calculateLevenshteinDistance(question, sentstr)
+        if (levenshtein < lowest_edit_dist):
+            lowest_edit_dist = levenshtein
+            most_relevant = sent
+
+    return most_relevant
+
 
 class Answer:
     def __init__(self, corpus):
