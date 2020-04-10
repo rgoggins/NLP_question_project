@@ -18,6 +18,8 @@ import sys
 import random
 from tokenizer import *
 import nltk
+nltk.download('maxent_ne_chunker', quiet = True)
+nltk.download('words', quiet = True)
 
 # Passed in documents and a number 'n' of questions we are required to generate
 # Load in the tokenized data

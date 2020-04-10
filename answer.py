@@ -10,9 +10,9 @@
 '''
 # from tokenizer import *
 import nltk
-# nltk.download("punkt")
-# nltk.download("averaged_perceptron_tagger")
-from edit_dist import *
+nltk.download("punkt", quiet = True)
+nltk.download("averaged_perceptron_tagger", quiet = True)
+#from edit_dist import *
 from spacy import load
 from tokenizer import *
 from textblob import Word
