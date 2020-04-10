@@ -16,22 +16,34 @@ from edit_dist import *
 from spacy import load
 from tokenizer import *
 from textblob import Word
+from textblob import TextBlob
 nlp = load("en_core_web_md")
 
 class Answer:
-    def __init__(self, corpus):
+    def __init__(self, textfile):
         #TODO process corpus based on tokenization
+        # f = open(textfile, "r+")
+        # corpus = f.read()
+        corpus = textfile
         self.corpus = corpus
-        self.tb = Tokenizer(corpus)
+        self.tb = TextBlob(corpus)
         self.NLP = nlp(corpus)
+    def get_relevant_sentences(self, question):
+        a = set(TextBlob(question).words)
+        snts = self.tb.sentences
+        return sorted(snts, key = lambda sent: len(a - set(sent.words)))
 
     def get_relevant_sentence(self, question):
         most_relevant = None
         lowest_edit_dist = float('inf')
 
-        for sent in self.tb.blob.sentences:
+        a = set(TextBlob(question).words)
+        for sent in self.tb.sentences:
             sentstr = str(sent)
-            levenshtein = calculateLevenshteinDistance(question, sentstr)
+            b = set(sent.words)
+            missing = a - b
+            # levenshtein = calculateLevenshteinDistance(question, sentstr)
+            levenshtein = len(missing)
             if (levenshtein < lowest_edit_dist):
                 lowest_edit_dist = levenshtein
                 most_relevant = sent
@@ -44,7 +56,9 @@ class Answer:
         tk = TextBlob(question)
         qcorpus = nlp(question)
         #get sentence most relevant to the question
-        relevant_sentence = most_relevant_sentence
+        relevant_sentence = str(self.get_relevant_sentence(question))
+        print("REL:", relevant_sentence)
+        print("SREL: ", most_relevant_sentence)
 
         #WHICH?????
         PERSON_QUESTION = "PERSON"
@@ -80,65 +94,70 @@ class Answer:
             if word in object_words:
                 qType = OBJECT_QUESTION
                 break
-
+        selected_passage_ents = nlp(most_relevant_sentence).ents
+        # for entity in selected_passage_ents:
+        #     print(entity.text, entity.label_)
         #Split into types of questions:
         #PERSON: (WHO)
-        if qType is PERSON_QUESTION:
-            for entity in self.NLP.ents:
-                if entity.label_ in person_tags:
-                    return entity.text
-            #DO PERSON CASE
-            return "COULD NOT FIND PERSON"
+        spes = self.get_relevant_sentences(question)
+        for sp in spes:
+            selected_passage_ents = nlp(str(sp)).ents
+            if qType is PERSON_QUESTION:
+                for entity in selected_passage_ents:
+                    if entity.label_ in person_tags:
+                        return entity.text
+                #DO PERSON CASE
+                # return "COULD NOT FIND PERSON"
 
-        #PLACE: (WHERE)
-        elif qType is PLACE_QUESTION:
-            for entity in self.NLP.ents:
-                if entity.label_ in place_tags:
-                    return entity.text
-            for entity in self.NLP.ents:
-                print(entity.text, entity.label_)
-            return "COULD NOT FIND PLACE"
+            #PLACE: (WHERE)
+            elif qType is PLACE_QUESTION:
+                for entity in selected_passage_ents:
+                    if entity.label_ in place_tags:
+                        return entity.text
+                # for entity in selected_passage_ents:
+                #     print(entity.text, entity.label_)
+                # return "COULD NOT FIND PLACE"
 
-        #TIME: (WHEN)
-        elif qType is TIME_QUESTION:
-            #NOTE: this is a little buggy, we may want to manually search for dates
-            for entity in self.NLP.ents:
-                if entity.label_ in ["DATE"]:
-                    return entity.text
-            for entity in self.NLP.ents:
-                if entity.label_ in ["CARDINAL"]:
-                    return entity.text
-            return "COULD NOT FIND TIME"
+            #TIME: (WHEN)
+            elif qType is TIME_QUESTION:
+                #NOTE: this is a little buggy, we may want to manually search for dates
+                for entity in selected_passage_ents:
+                    if entity.label_ in ["DATE"]:
+                        return entity.text
+                for entity in selected_passage_ents:
+                    if entity.label_ in ["CARDINAL"]:
+                        return entity.text
+                # return "COULD NOT FIND TIME"
 
-        #YES/NO QUESTION
-        elif qType is YES_NO_QUESTION:
-            q_tags = tk.tags
-            keyword = ""
-            key_tag = ""
-            for (token, tag) in q_tags:
-                if tag[0] == 'N' or tag[0] == "V":
-                    keyword = token
-                    key_tag = tag
+            #YES/NO QUESTION
+            elif qType is YES_NO_QUESTION:
+                q_tags = tk.tags
+                keyword = ""
+                key_tag = ""
+                for (token, tag) in q_tags:
+                    if tag[0] == 'N' or tag[0] == "V":
+                        keyword = token
+                        key_tag = tag
 
-            keyword_found = False
-            neg = False
-            for token in nlp(relevant_sentence):
-                if str(token) == keyword or (key_tag[0] == "V" and Word(str(token)).lemmatize("v") == Word(keyword).lemmatize("v")):
-                    keyword_found = True
-                if token.dep_ == 'neg':
-                    neg = not neg
+                keyword_found = False
+                neg = False
+                for token in nlp(relevant_sentence):
+                    if str(token) == keyword or (key_tag[0] == "V" and Word(str(token)).lemmatize("v") == Word(keyword).lemmatize("v")):
+                        keyword_found = True
+                    if token.dep_ == 'neg':
+                        neg = not neg
 
-            if keyword_found:
-                if neg: return "No"
-                else: return "Yes"
-            return "No"
+                if keyword_found:
+                    if neg: return "No"
+                    else: return "Yes"
+                return "No"
 
-        #REASON (WHY)
-        #NOTE: Probably don't have to do this, oddball questins
-        else:
-            pass
-            #DO THIS CASE
-            return "COULD NOT FIND REASON"
+            #REASON (WHY)
+            #NOTE: Probably don't have to do this, oddball questins
+            else:
+                pass
+                #DO THIS CASE
+                # return "COULD NOT FIND REASON"
 
         return "Unsure"
 
@@ -208,6 +227,7 @@ Sirius will take its turn as the South Pole Star in the year 66,270 AD. In fact,
     print("Q5 Answer:   \"", q5_ans, "\"", sep="")
     print("Q5 Solution: \"Yes\"")
     print("---------------------")
-
+def test_file():
+    pass
 if __name__ == "__main__":
     test()
