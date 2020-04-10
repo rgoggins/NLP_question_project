@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# -*- coding: utf-8 -*-
 import sys
 from answer import *
 
@@ -7,11 +7,11 @@ if __name__ == "__main__":
     article = str(sys.argv[1])
     questions = str(sys.argv[2])
 
-    f = open(article, "r").read()
+    f = open(article, "r", encoding='utf8').read()
 
     ans = Answer(f)
 
-    q = open(questions, "r")
+    q = open(questions, "r", encoding='utf8')
 
     answers = []
 
