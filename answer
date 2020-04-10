@@ -1,5 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
+import sys
 from answer import *
 
 if __name__ == "__main__":
@@ -15,7 +16,7 @@ if __name__ == "__main__":
     answers = []
 
     for line in q:
-        answers.append(answer_question(line))
+        answers.append(ans.answer_question(line))
 
     for ind in answers:
         print(ind)
