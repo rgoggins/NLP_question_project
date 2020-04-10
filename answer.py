@@ -153,10 +153,14 @@ class Answer:
             #REASON (WHY)
             #NOTE: Probably don't have to do this, oddball questins
             else:
-                pass
                 #DO THIS CASE
                 # return "COULD NOT FIND REASON"
+                pass
 
+        for sp in spes:
+            selected_passage_ents = nlp(str(sp)).ents
+            for entity in selected_passage_ents:
+                return entity.text
         return "Unsure"
 
 
