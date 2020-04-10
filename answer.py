@@ -51,14 +51,12 @@ class Answer:
         return most_relevant
 
     #NOTE: final version will only have self and question parameter.
-    def answer_question(self, question, most_relevant_sentence):
+    def answer_question(self, question):
         #tokenize question
         tk = TextBlob(question)
         qcorpus = nlp(question)
         #get sentence most relevant to the question
         relevant_sentence = str(self.get_relevant_sentence(question))
-        print("REL:", relevant_sentence)
-        print("SREL: ", most_relevant_sentence)
 
         #WHICH?????
         PERSON_QUESTION = "PERSON"
@@ -94,7 +92,7 @@ class Answer:
             if word in object_words:
                 qType = OBJECT_QUESTION
                 break
-        selected_passage_ents = nlp(most_relevant_sentence).ents
+        # selected_passage_ents = nlp(relevant_sentence).ents
         # for entity in selected_passage_ents:
         #     print(entity.text, entity.label_)
         #Split into types of questions:
@@ -168,7 +166,7 @@ def test():
     q1_most_relevant_sentence = "Chipata Mountain is in Nkhotakota Wildlife Reserve"
     q1_answerer = Answer(q1_corpus)
     q1_question = "Where is Chiapata Mountain?"
-    q1_ans = q1_answerer.answer_question(q1_question, q1_most_relevant_sentence)
+    q1_ans = q1_answerer.answer_question(q1_question)
     print("Q1 Question: \"",q1_question,"\"", sep = "")
     print("Q1 Answer:   \"",q1_ans,"\"", sep = "")
     print("---------------------")
@@ -178,7 +176,7 @@ def test():
     q2_most_relevant_sentence = "The sky is not red."
     q2_answerer = Answer(q2_corpus)
     q2_question = "Is the sky red"
-    q2_ans = q2_answerer.answer_question(q2_question, q2_most_relevant_sentence)
+    q2_ans = q2_answerer.answer_question(q2_question)
     print("Q2 Question: \"", q2_question, "\"", sep = "")
     print("Q2 Answer:   \"", q2_ans, "\"", sep = "")
     print("Q2 Solution: \"No\"")
@@ -194,7 +192,7 @@ Sirius will take its turn as the South Pole Star in the year 66,270 AD. In fact,
     q3_most_relevant_sentence = "Sigma Octantis is the closest naked-eye star to the south Celestial pole, but at apparent magnitude 5.45 it is barely visible on a clear night, making it unusable for navigational purposes"
     q3_answerer = Answer(q3_long_corpus)
     q3_question = "Where is Sigma Octantis close to?"
-    q3_ans = q3_answerer.answer_question(q3_question, q3_most_relevant_sentence)
+    q3_ans = q3_answerer.answer_question(q3_question)
     print("Q3 Question: \"", q3_question, "\"", sep = "")
     print("Q3 Answer:   \"", q3_ans, "\"", sep = "")
     print("Q3 Solution: \"the south Celestial pole\"")
@@ -204,7 +202,7 @@ Sirius will take its turn as the South Pole Star in the year 66,270 AD. In fact,
     q4_answerer = Answer(q4_corpus)
     q4_question1 = "When was Beta Hydri the nearest bright star to the Celestial south pole?"
     q4_most_relevant_sentence1 = "Around 200 BC, the star Beta Hydri was the nearest bright star to the Celestial south pole."
-    q4_ans1 = q4_answerer.answer_question(q4_question1, q4_most_relevant_sentence1)
+    q4_ans1 = q4_answerer.answer_question(q4_question1)
     print("Q4 Question 1: \"", q4_question1, "\"", sep = "")
     print("Q4 Answer 1:   \"", q4_ans1, "\"", sep = "")
     print("Q4 Solution 1: \"200 BC\"")
@@ -212,7 +210,7 @@ Sirius will take its turn as the South Pole Star in the year 66,270 AD. In fact,
     #NOTE: Most relevant sentence isn't being taken into consideration which is why this doesnt work
     q4_question2 = "When was Achernar only 8 degrees from the south pole?"
     q4_most_relevant_sentence2 = "Around 2800 BC, Achernar was only 8 degrees from the south pole."
-    q4_ans2 = q4_answerer.answer_question(q4_question2, q4_most_relevant_sentence2)
+    q4_ans2 = q4_answerer.answer_question(q4_question2)
     print("Q4 Question 2: \"", q4_question2, "\"", sep = "")
     print("Q4 Answer 2:   \"", q4_ans2, "\"", sep = "")
     print("Q4 Solution 2: \"2800 BC\"")
@@ -222,7 +220,7 @@ Sirius will take its turn as the South Pole Star in the year 66,270 AD. In fact,
     q5_most_relevant_sentence = "Kobe played basketball everyday"
     q5_answerer = Answer(q5_corpus)
     q5_question = "Did Kobe play basketball?"
-    q5_ans = q5_answerer.answer_question(q5_question, q5_most_relevant_sentence)
+    q5_ans = q5_answerer.answer_question(q5_question)
     print("Q5 Question: \"", q5_question, "\"", sep="")
     print("Q5 Answer:   \"", q5_ans, "\"", sep="")
     print("Q5 Solution: \"Yes\"")
