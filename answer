@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+
+from answer import *
+
+if __name__ == "__main__":
+    article = str(sys.argv[1])
+    questions = str(sys.argv[2])
+
+    f = open(article, "r").read()
+
+    ans = Answer(f)
+
+    q = open(questions, "r")
+
+    answers = []
+
+    for line in q:
+        answers.append(answer_question(line))
+
+    for ind in answers:
+        print(ind)
