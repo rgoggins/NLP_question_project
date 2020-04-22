@@ -46,15 +46,33 @@ def generate_when_question(root_sentence):
     year = None
     ind = -1
 
-    sentencestr = str(root_sentence)
+    sentencestr = str(root_sentence).split()
+    newsent = []
+    print("Sentence: " + str(sentencestr))
 
-    for i, word in enumerate(sentencestr.split()):
-        if (len(word) == 4 and word.isdigit()):
+    for i, word in enumerate(sentencestr):
+        if (len(word) == 4 and word.isdigit() and (word[:2] in ["18", "19", "20"])):
             year = int(word)
             ind = i
+            # replace it
+            print("Previous: " + str(sentencestr[i-1]))
+            if (i > 0) and (sentencestr[i-1].lower() == "the"):
+                newsent = newsent[:-1]
+                newsent.append("which year of the")
+                continue
+            if (i > 0) and (sentencestr[i-1].lower() in ["in", "on"]):
+                newsent.append("what year")
+                continue
+            else:
+                newsent.append("in which year")
+                continue
+        else:
+            newsent.append(word)
 
     if (year == None):
         return None
+
+    return " ".join(newsent)[:-1] + "?"
 
 
 
@@ -149,6 +167,7 @@ if __name__ == "__main__":
 
     while (len(questions) < num_questions):
         sen = tk.blob.sentences[index % len(tk.blob.sentences)]
+
         # print("Len of questions: " + str(len(questions)))
         # print("Sentence " + str(index) + " w polarity " + str(sen.sentiment.polarity) + " is " + str(sen[:min(40,len(sen))]))
         if (abs(sen.sentiment.polarity) > (0.9**index)) and ('\n' not in str(sen)) and ("PRP" not in sen.tags[0][1]):
@@ -161,8 +180,14 @@ if __name__ == "__main__":
             if (output != None):
                 questions.append(output)
                 sentence_roots.append(sen)
+        else:
+            output = generate_when_question(sen)
+            if (output != None):
+                questions.append(output)
+                sentence_roots.append(sen)
 
         index += 1
 
+    print("\n")
     for question in questions:
         print(str(question))
