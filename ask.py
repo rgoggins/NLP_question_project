@@ -33,6 +33,31 @@ sent = "Although no announcement was made by his team, Ryan Dempsey appeared in 
 
 # sentiment_q = False
 
+def check_question_grammar(question):
+    pass
+
+
+def generate_when_question(root_sentence):
+    # Find the date
+    # can I just replace it with March 10 of what year
+    # Replace month, year,
+
+
+    year = None
+    ind = -1
+
+    sentencestr = str(root_sentence)
+
+    for i, word in enumerate(sentencestr.split()):
+        if (len(word) == 4 and word.isdigit()):
+            year = int(word)
+            ind = i
+
+    if (year == None):
+        return None
+
+
+
 def generate_who_question(root_sentence):
     # Find the noun phrase with an NER about a person in it
     topic = None
