@@ -60,11 +60,15 @@ def generate_when_question(root_sentence):
             ind = i
             # replace it
             print("Previous: " + str(sentencestr[i-1]))
+            if (i > 0) and (i < len(root_sentence.words) - 1):
+                if (sen.tags[i-1][1] == "NN") and (sen.tags[i+1][1] == "NN"):
+                    return None
+
             if (i > 0) and (sentencestr[i-1].lower() == "the"):
                 newsent = newsent[:-1]
                 newsent.append("which year of the")
                 continue
-            if (i > 0) and (sentencestr[i-1].lower() in ["in", "on"]):
+            if (i > 0) and (sentencestr[i-1].lower() in ["in", "on", "between"]):
                 newsent.append("what year")
                 continue
             else:
@@ -80,7 +84,7 @@ def generate_when_question(root_sentence):
 
 
 
-def generate_who_question(root_sentence):
+def generate_who_question(root_sentence, man, woman, entity):
     # Find the noun phrase with an NER about a person in it
     topic = None
     chunk = None
@@ -109,12 +113,20 @@ def generate_who_question(root_sentence):
         if (first):
             if (str(value) == topic):
                 # Replace with 'who'
-                return "who"
+                if (man or woman):
+                    return "who"
+                return "what"
             else:
                 # Replace with he or his (appropriate pronoun)
-                return "who"
+                if (man or woman):
+                    return "who"
+                return "what"
         else:
-            return "he"
+            if (man):
+                return "he"
+            elif (woman):
+                return "she"
+            return "it"
             # Replace with pronoun
 
     fn_string = "(?<![-\w\d])(" + str(topic) + "|"
@@ -155,6 +167,18 @@ def generate_binary_question(root_sentence):
     sent_frag = sent_frag[:-1] + "?"
     return phrase + sent_frag
 
+invalid_starting_labels = ["PRP", "PRP$", "DT"]
+
+def meets_binary_crit(sentence, iter):
+    return (len(sentence.words) > 15 - iter) and ('\n' not in str(sentence)) and (sen.tags[0][1] not in invalid_starting_labels) and (abs(sen.sentiment.polarity) >0.4 - float(iter)/10.0)
+
+def meets_who_crit(sentence, iter):
+    return ('\n' not in str(sentence)) and (sen.tags[0][1] not in invalid_starting_labels) and (abs(sen.sentiment.polarity) >0.3 - float(iter)/10.0) and (len(sentence.words) > 10)
+
+def meets_when_crit(sentence, iter):
+    return (len(sentence.words) > 15 - iter) and ('\n' not in str(sentence)) and (sen.tags[0][1] not in invalid_starting_labels)
+
+
 questions = []
 
 sentence_roots = []
@@ -165,44 +189,53 @@ if __name__ == "__main__":
     filename = str(sys.argv[1])
     num_questions = int(sys.argv[2])
 
+    man = False
+    woman = False
+    entity = False
+
+    it_count = 0
+    he_count = 0
+    she_count = 0
+
     tk = Tokenizer(filename)
+
+    for sentence in tk.blob.sentences:
+        for word in sentence.words:
+            if (str(word).lower() == "it"):
+                it_count += 1
+            elif (str(word).lower() == "he"):
+                he_count += 1
+            elif (str(word).lower() == "she"):
+                she_count += 1
+
+    if (max(it_count, he_count, she_count) == it_count):
+        entity = True
+    elif (max(it_count, he_count, she_count) == he_count):
+        man = True
+    else:
+        woman = True
 
     index = 0
 
     while (len(questions) < num_questions):
+        iter = (index // len(tk.blob.sentences))
         sen = tk.blob.sentences[index % len(tk.blob.sentences)]
-
-        if (meets_binary_crit(sen)):
-            questions.append(generate_binary_question(sen))
-            sentence_roots.append(sen)
-        elif (meets_who_crit(sen)):
-            output = generate_who_question(sen)
-            if (output != None):
+        print("Sentence: " + str(sen))
+        print("Sentence tags: " + str(sen.tags))
+        print("\n")
+        if (meets_binary_crit(sen, iter)):
+            output = generate_binary_question(sen)
+            if (output not in questions):
                 questions.append(output)
                 sentence_roots.append(sen)
-        elif (meets_when_crit()):
+        elif (meets_who_crit(sen, iter)):
+            output = generate_who_question(sen, man, woman, entity)
+            if (output != None) and (output not in questions):
+                questions.append(output)
+                sentence_roots.append(sen)
+        elif (meets_when_crit(sen, iter)):
             output = generate_when_question(sen)
-            if (output != None):
-                questions.append(output)
-                sentence_roots.append(sen)
-        elif (meets_where_crit()):
-            
-
-        # print("Len of questions: " + str(len(questions)))
-        # print("Sentence " + str(index) + " w polarity " + str(sen.sentiment.polarity) + " is " + str(sen[:min(40,len(sen))]))
-        if (abs(sen.sentiment.polarity) > (0.9**index)) and ('\n' not in str(sen)) and ("PRP" not in sen.tags[0][1]):
-            # if (index < len(tk.blob.sentences)):
-            questions.append(generate_binary_question(sen))
-            sentence_roots.append(sen)
-        elif ('\n' not in str(sen)) and (abs(sen.sentiment.polarity) >0.1) and (len(sen.words) > 10):
-            # print("Len of sen: " + str(len(sen.words)))
-            output = generate_who_question(sen)
-            if (output != None):
-                questions.append(output)
-                sentence_roots.append(sen)
-        else:
-            output = generate_when_question(sen)
-            if (output != None):
+            if (output != None) and (output not in questions):
                 questions.append(output)
                 sentence_roots.append(sen)
 
