@@ -37,11 +37,15 @@ def check_question_grammar(question):
     pass
 
 
+def generate_where_question(root_sentence):
+    # These are too arbitrary, too difficult to determine locations
+    pass
+
+
 def generate_when_question(root_sentence):
     # Find the date
     # can I just replace it with March 10 of what year
     # Replace month, year,
-
 
     year = None
     ind = -1
@@ -167,6 +171,22 @@ if __name__ == "__main__":
 
     while (len(questions) < num_questions):
         sen = tk.blob.sentences[index % len(tk.blob.sentences)]
+
+        if (meets_binary_crit(sen)):
+            questions.append(generate_binary_question(sen))
+            sentence_roots.append(sen)
+        elif (meets_who_crit(sen)):
+            output = generate_who_question(sen)
+            if (output != None):
+                questions.append(output)
+                sentence_roots.append(sen)
+        elif (meets_when_crit()):
+            output = generate_when_question(sen)
+            if (output != None):
+                questions.append(output)
+                sentence_roots.append(sen)
+        elif (meets_where_crit()):
+            
 
         # print("Len of questions: " + str(len(questions)))
         # print("Sentence " + str(index) + " w polarity " + str(sen.sentiment.polarity) + " is " + str(sen[:min(40,len(sen))]))
