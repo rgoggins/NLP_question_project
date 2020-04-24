@@ -179,13 +179,10 @@ def meets_when_crit(sentence, iter):
     return (len(sentence.words) > 15 - iter) and ('\n' not in str(sentence)) and (sen.tags[0][1] not in invalid_starting_labels)
 
 
-questions = []
-
-sentence_roots = []
-
-
-
 if __name__ == "__main__":
+    questions = []
+
+    sentence_roots = []
     filename = str(sys.argv[1])
     num_questions = int(sys.argv[2])
 
