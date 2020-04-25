@@ -20,6 +20,7 @@ from tokenizer import *
 import nltk
 from textblob import TextBlob
 
+
 # Passed in documents and a number 'n' of questions we are required to generate
 # Load in the tokenized data
 # Create NER table
@@ -52,16 +53,20 @@ def generate_when_question(root_sentence):
     ind = -1
 
     sentencestr = str(root_sentence).split()
+    # sentencestr = "Northward, in the 2nd century AD, the Kushans under Kanishka made various forays into the Tarim Basin, where they had various contacts with the Chinese.".split()
     newsent = []
+    # print("Sentence: " + str(sentencestr))
 
     for i, word in enumerate(sentencestr):
+        # print("Iteration " + str(i) + ": " + word)
         if (len(word) == 4 and word.isdigit() and (word[:2] in ["18", "19", "20"])):
             year = int(word)
             ind = i
             # replace it
+            # print("Previous: " + str(sentencestr[i-1]))
             if (i > 0) and (i < len(root_sentence.words) - 1):
                 if (sen.tags[i-1][1] == "NN") and (sen.tags[i+1][1] == "NN"):
-                    return None
+                    continue
 
             if (i > 0) and (sentencestr[i-1].lower() == "the"):
                 newsent = newsent[:-1]
@@ -73,14 +78,16 @@ def generate_when_question(root_sentence):
             else:
                 newsent.append("in which year")
                 continue
+        elif (word.isdigit() and (i < len(sentencestr) - 1) and sentencestr[i+1] in ["BC", "AD", "BCE"]):
+            # This is a date
+            newsent.append("in about which year")
+
+        elif ((word[0].isdigit()) and (not word[-1].isdigit()) and (i < len(sentencestr) - 2) and (sentencestr[i+1] == "century") and (sentencestr[i+2][:2] in ["BC", "AD", "CE"])):
+            newsent.append("which")
         else:
             newsent.append(word)
 
-    if (year == None):
-        return None
-
     return " ".join(newsent)[:-1] + "?"
-
 
 
 def generate_who_question(root_sentence, man, woman, entity):
@@ -149,6 +156,7 @@ def generate_binary_question(root_sentence):
     if (random.randint(1,2) == 1):
         phrase = "Is it true that "
     sent_frag = str(root_sentence)
+
     def fn_replacement(m):
         value = m.group(0)
         # print("Value is " + str(value))
@@ -156,7 +164,7 @@ def generate_binary_question(root_sentence):
             number = int(value)
             if (abs(number - 1990) < 30):
                 return " " + str(random.randint(1,30) + 1990) + ""
-            return " " + str(number*2) + " "
+            return " " + str(number*2) + ""
         else:
             return str(value)
     match = '\s\d\d*'
@@ -171,13 +179,13 @@ def generate_binary_question(root_sentence):
 invalid_starting_labels = ["PRP", "PRP$", "DT"]
 
 def meets_binary_crit(sentence, iter):
-    return (len(sentence.words) > 15 - iter) and ('\n' not in str(sentence)) and (sen.tags[0][1] not in invalid_starting_labels) and (abs(sen.sentiment.polarity) >0.4 - float(iter)/10.0)
+    return (len(sentence.words) > 15 - iter) and ('\n' not in str(sentence)) and (sen.tags[0][1] not in invalid_starting_labels) and (abs(sen.sentiment.polarity) >0.4 - float(iter)/10.0) and ('"' not in str(sentence)) and ("for example" not in str(sentence).lower())
 
 def meets_who_crit(sentence, iter):
-    return ('\n' not in str(sentence)) and (sen.tags[0][1] not in invalid_starting_labels) and (abs(sen.sentiment.polarity) >0.3 - float(iter)/10.0) and (len(sentence.words) > 10)
+    return ('\n' not in str(sentence)) and (sen.tags[0][1] not in invalid_starting_labels) and (abs(sen.sentiment.polarity) >0.3 - float(iter)/10.0) and (len(sentence.words) > 10) and ('"' not in str(sentence)) and ("for example" not in str(sentence).lower())
 
 def meets_when_crit(sentence, iter):
-    return (len(sentence.words) > 15 - iter) and ('\n' not in str(sentence)) and (sen.tags[0][1] not in invalid_starting_labels)
+    return (len(sentence.words) > 15 - iter) and ('\n' not in str(sentence)) and (sen.tags[0][1] not in invalid_starting_labels) and ('"' not in str(sentence)) and ("for example" not in str(sentence).lower())
 
 
 if __name__ == "__main__":
@@ -220,29 +228,30 @@ if __name__ == "__main__":
     while (len(questions) < num_questions):
         iter = (index // len(tk.blob.sentences))
         sen = tk.blob.sentences[index % len(tk.blob.sentences)]
-        if (turn % 3 == 0):
-            if (meets_binary_crit(sen, iter)):
-                output = generate_binary_question(sen)
-                if (output not in questions):
-                    turn += 1
-                    questions.append(output)
-                    sentence_roots.append(sen)
+        if (sen not in sentence_roots):
+            if (turn % 3 == 0):
+                if (meets_binary_crit(sen, iter)):
+                    output = generate_binary_question(sen)
+                    if (output not in questions):
+                        turn += 1
+                        questions.append(output)
+                        sentence_roots.append(sen)
 
-        elif (turn % 3 == 1):
-            if (meets_who_crit(sen, iter)):
-                output = generate_who_question(sen, man, woman, entity)
-                if (output != None) and (output not in questions):
-                    turn += 1
-                    questions.append(output)
-                    sentence_roots.append(sen)
+            elif (turn % 3 == 1):
+                if (meets_who_crit(sen, iter)):
+                    output = generate_who_question(sen, man, woman, entity)
+                    if (output != None) and (output not in questions):
+                        turn += 1
+                        questions.append(output)
+                        sentence_roots.append(sen)
 
-        elif (turn % 3 == 2):
-            if (meets_when_crit(sen, iter)):
-                output = generate_when_question(sen)
-                if (output != None) and (output not in questions):
-                    turn += 1
-                    questions.append(output)
-                    sentence_roots.append(sen)
+            elif (turn % 3 == 2):
+                if (meets_when_crit(sen, iter)):
+                    output = generate_when_question(sen)
+                    if (output != None) and (output not in questions):
+                        turn += 1
+                        questions.append(output)
+                        sentence_roots.append(sen)
 
         index += 1
 
