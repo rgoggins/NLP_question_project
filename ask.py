@@ -146,9 +146,9 @@ def generate_who_question(root_sentence, man, woman, entity):
     return altered
 
 
-def generate_binary_question(root_sentence, count):
+def generate_binary_question(root_sentence):
     phrase = "Is it correct that "
-    if (count % 2 == 0):
+    if (random.randint(1,2) == 1):
         phrase = "Is it true that "
     sent_frag = str(root_sentence)
     def fn_replacement(m):
@@ -184,7 +184,6 @@ def meets_when_crit(sentence, iter):
 
 if __name__ == "__main__":
 
-
     questions = []
 
     sentence_roots = []
@@ -218,20 +217,15 @@ if __name__ == "__main__":
         woman = True
 
     index = 0
-    count = 0
     turn = 0
 
     while (len(questions) < num_questions):
         iter = (index // len(tk.blob.sentences))
         sen = tk.blob.sentences[index % len(tk.blob.sentences)]
-        print("Sentence: " + str(sen))
-        print("Sentence tags: " + str(sen.tags))
-        print("\n")
         if (turn % 3 == 0):
             if (meets_binary_crit(sen, iter)):
-                output = generate_binary_question(sen, count)
+                output = generate_binary_question(sen)
                 if (output not in questions):
-                    count += 1
                     turn += 1
                     questions.append(output)
                     sentence_roots.append(sen)
