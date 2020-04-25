@@ -26,7 +26,6 @@ from textblob import TextBlob
 # Split up questions equally into Who? What? Is/was? (only binary questions for now)
 # A question should have its answer in a single sentence
 
-count = 0
 tokenized_data = None # call whatever tokenizer.py function gets the data
 num_questions = 10 # this is also passed in
 
@@ -146,11 +145,10 @@ def generate_who_question(root_sentence, man, woman, entity):
     return altered
 
 
-def generate_binary_question(root_sentence):
+def generate_binary_question(root_sentence, count):
     phrase = "Is it correct that "
     if (count % 2 == 0):
         phrase = "Is it true that "
-    count += 1
     sent_frag = str(root_sentence)
     def fn_replacement(m):
         value = m.group(0)
@@ -217,6 +215,7 @@ if __name__ == "__main__":
         woman = True
 
     index = 0
+    count = 0
 
     while (len(questions) < num_questions):
         iter = (index // len(tk.blob.sentences))
@@ -225,8 +224,10 @@ if __name__ == "__main__":
         print("Sentence tags: " + str(sen.tags))
         print("\n")
         if (meets_binary_crit(sen, iter)):
-            output = generate_binary_question(sen)
+
+            output = generate_binary_question(sen, count)
             if (output not in questions):
+                count += 1
                 questions.append(output)
                 sentence_roots.append(sen)
         elif (meets_who_crit(sen, iter)):
