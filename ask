@@ -165,7 +165,7 @@ def gen_when(f):
     le = set([(x.text.strip()) for x in list(nlp(f).ents) if str(x.label_) in ["DATE","TIME"]])
     qcands = []
     for sent in TextBlob(f).sentences:
-        ssent = str(sent).strip()
+        ssent = str(sent).strip().replace(".", "")
         keywords = ["on", "in", "during"]
         is_cand = any([ssent.lower().find(keyword) == 0 for keyword in keywords])
         if is_cand:
@@ -305,6 +305,7 @@ if __name__ == "__main__":
                 if (random.randint(1,4) == 1):
                     if (when_questions != None):
                         if (len(when_questions) != 0):
+                            turn += 1
                             questions.append(when_questions.pop(0))
                 elif (meets_when_crit(sen, iter)):
                     output = generate_when_question(sen)

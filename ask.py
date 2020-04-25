@@ -305,6 +305,7 @@ if __name__ == "__main__":
                 if (random.randint(1,4) == 1):
                     if (when_questions != None):
                         if (len(when_questions) != 0):
+                            turn += 1
                             questions.append(when_questions.pop(0))
                 elif (meets_when_crit(sen, iter)):
                     output = generate_when_question(sen)
