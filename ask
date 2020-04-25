@@ -23,53 +23,28 @@ from textblob import TextBlob
 nlp = spacy.load('en_core_web_md')
 
 
-# Passed in documents and a number 'n' of questions we are required to generate
-# Load in the tokenized data
-# Create NER table
-# Find most frequent entities referenced by document
-# Split up questions equally into Who? What? Is/was? (only binary questions for now)
-# A question should have its answer in a single sentence
-
-tokenized_data = None # call whatever tokenizer.py function gets the data
-num_questions = 10 # this is also passed in
-
-# sentiment_q = False
-
-def check_question_grammar(question):
-    pass
-
-
-def generate_where_question(root_sentence):
-    # These are too arbitrary, too difficult to determine locations
-    pass
-
-
 def generate_when_question(root_sentence):
-    # Find the date
-    # can I just replace it with March 10 of what year
-    # Replace month, year,
-
+    # This function generates time-based questions by altering the root sentence
+    # and changing years, months, and time periods within the sentence to transform
+    # it into a question
     year = None
     ind = -1
 
     sentencestr = str(root_sentence).split()
-    # sentencestr = "Northward, in the 2nd century AD, the Kushans under Kanishka made various forays into the Tarim Basin, where they had various contacts with the Chinese.".split()
     newsent = []
-    # print("Sentence: " + str(sentencestr))
 
-    altered = False
+    altered = False #determines whether we find any places to change or not
 
     for i, word in enumerate(sentencestr):
-        # print("Iteration " + str(i) + ": " + word)
         if (len(word) == 4 and word.isdigit() and (word[:2] in ["18", "19", "20"])):
             year = int(word)
             ind = i
-            # replace it
-            # print("Previous: " + str(sentencestr[i-1]))
             if (i > 0) and (i < len(root_sentence.words) - 1):
+                # Special case where the number is surrounded by POS 'nn', which
+                # makes the use of the number way more arbitrary and thus it
+                # is nearly impossible to generalize a rule about it
                 if (sen.tags[i-1][1] == "NN") and (sen.tags[i+1][1] == "NN"):
                     continue
-
             if (i > 0) and (sentencestr[i-1].lower() == "the"):
                 newsent = newsent[:-1]
                 newsent.append("which year of the")
@@ -78,7 +53,6 @@ def generate_when_question(root_sentence):
             if (i > 0) and (sentencestr[i-1].lower() in ["in", "on", "between"]):
                 newsent.append("what year")
                 altered = True
-
                 continue
             else:
                 altered = True
@@ -88,7 +62,6 @@ def generate_when_question(root_sentence):
             # This is a date
             altered = True
             newsent.append("in about which year")
-
         elif ((word[0].isdigit()) and (not word[-1].isdigit()) and (i < len(sentencestr) - 2) and (sentencestr[i+1] == "century") and (sentencestr[i+2][:2] in ["BC", "AD", "CE"])):
             altered = True
             newsent.append("which")
@@ -102,31 +75,25 @@ def generate_when_question(root_sentence):
 
 
 def generate_who_question(root_sentence, man, woman, entity):
-    # Find the noun phrase with an NER about a person in it
+    # Find the noun phrase with an NER about an entity in it
     topic = None
     chunk = None
     sentencestr = str(root_sentence)
     for s in nltk.sent_tokenize(sentencestr):
         for ch in nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(s))):
             if hasattr(ch, 'label'):
-                # print("label: " + str(ch.label()))
+                # Determine whether the thing being referenced is a person or not
                 if (ch.label() == "PERSON"):
                     chunk = ch
                     topic = " ".join(c[0] for c in ch)
                     break
     if (topic == None):
-        # print("No PERSON found in the sentence: " + sentencestr)
         return None
-
-
-    # print("topic: " + str(topic) + " end")
 
     first = True
 
     def name_replacement(m):
         value = m.group(0)
-
-        # print("Here is the value we are replacing:" + str(value) + "END.")
         if (first):
             if (str(value) == topic):
                 # Replace with 'who'
@@ -152,8 +119,6 @@ def generate_who_question(root_sentence, man, woman, entity):
         for name in chunk:
             fn_string += str(name) + "|"
     fn_string = fn_string[:-1] + ")"
-
-    # print("Original sentence: " + str(sentencestr))
 
     altered = re.sub(fn_string, name_replacement, sentencestr)
     # print("Altered: " + str(altered))
@@ -211,7 +176,6 @@ def generate_binary_question(root_sentence):
     sent_frag = re.sub(match, fn_replacement, str(root_sentence))
     word1 = root_sentence.tags[0]
     if (word1[1] != "NNP"):
-        # print("First word is not a proper noun " + str(word1[0]))
         sent_frag = sent_frag[0].lower() + "" + sent_frag[1:]
     sent_frag = sent_frag[:-1] + "?"
     return phrase + sent_frag

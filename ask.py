@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 '''
 @file ask.py
 @brief A python script for generating questions about a given document
