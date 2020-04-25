@@ -280,6 +280,6 @@ if __name__ == "__main__":
 
         index += 1
 
-    print("\n")
+    # print("\n")
     for question in questions:
         print(str(question))
