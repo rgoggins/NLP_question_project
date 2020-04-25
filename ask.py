@@ -13,6 +13,7 @@
 '''
 import re
 import math
+import spacy
 import sys
 import random
 from tokenizer import *
@@ -182,6 +183,8 @@ def meets_when_crit(sentence, iter):
 
 
 if __name__ == "__main__":
+
+
     questions = []
 
     sentence_roots = []
@@ -223,31 +226,29 @@ if __name__ == "__main__":
         print("Sentence: " + str(sen))
         print("Sentence tags: " + str(sen.tags))
         print("\n")
-        if (meets_binary_crit(sen, iter)):
+        if (index % 3 == 0):
+            if (meets_binary_crit(sen, iter)):
+                output = generate_binary_question(sen, count)
+                if (output not in questions):
+                    count += 1
+                    questions.append(output)
+                    sentence_roots.append(sen)
+        elif (index % 3 == 1):
+            if (meets_who_crit(sen, iter)):
+                output = generate_who_question(sen, man, woman, entity)
+                if (output != None) and (output not in questions):
+                    questions.append(output)
+                    sentence_roots.append(sen)
 
-            output = generate_binary_question(sen, count)
-            if (output not in questions):
-                count += 1
-                questions.append(output)
-                sentence_roots.append(sen)
-        elif (meets_who_crit(sen, iter)):
-            output = generate_who_question(sen, man, woman, entity)
-            if (output != None) and (output not in questions):
-                questions.append(output)
-                sentence_roots.append(sen)
-        elif (meets_when_crit(sen, iter)):
-            output = generate_when_question(sen)
-            if (output != None) and (output not in questions):
-                questions.append(output)
-                sentence_roots.append(sen)
+        elif (index % 3 == 2):
+            if (meets_when_crit(sen, iter)):
+                output = generate_when_question(sen)
+                if (output != None) and (output not in questions):
+                    questions.append(output)
+                    sentence_roots.append(sen)
 
         index += 1
 
     print("\n")
     for question in questions:
         print(str(question))
-
-    # s = "After independence, the government of India instituted the following conventions: standardisation of grammar: In 1954, the Government of India set up a committee to prepare a grammar of Hindi; The committee's report was released in 1958 as A Basic Grammar of Modern Hindi."
-    # print("\nSentence:\n" + s)
-    # newtk = TextBlob(s)
-    # print(str(newtk.sentences[0].tags))
