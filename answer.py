@@ -10,6 +10,9 @@
 '''
 # from tokenizer import *
 import nltk
+from nltk.corpus import wordnet
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 nltk.download("punkt", quiet = True)
 nltk.download("averaged_perceptron_tagger", quiet = True)
 #from edit_dist import *
@@ -18,6 +21,7 @@ from tokenizer import *
 from textblob import Word
 from textblob import TextBlob
 nlp = load("en_core_web_md")
+ps = PorterStemmer()
 
 class Answer:
     def __init__(self, textfile):
@@ -49,6 +53,22 @@ class Answer:
                 most_relevant = sent
 
         return most_relevant
+
+    def is_neg(self, text):
+        neg = False
+        for token in nlp(text):
+            if token.dep_ == 'neg':
+                neg = not neg
+        return neg
+
+    def word_antonyms(self, word):
+        antonym_set = set()
+        for syn in wordnet.synsets(str(word)):
+            for l in syn.lemmas():
+                if l.antonyms():
+                    antonym_set.add(l.antonyms()[0].name())
+        return antonym_set
+
 
     #NOTE: final version will only have self and question parameter.
     def answer_question(self, question):
@@ -129,26 +149,23 @@ class Answer:
 
             #YES/NO QUESTION
             elif qType is YES_NO_QUESTION:
-                q_tags = tk.tags
-                keyword = ""
-                key_tag = ""
-                for (token, tag) in q_tags:
-                    if tag[0] == 'N' or tag[0] == "V":
-                        keyword = token
-                        key_tag = tag
 
-                keyword_found = False
-                neg = False
-                for token in nlp(relevant_sentence):
-                    if str(token) == keyword or (key_tag[0] == "V" and Word(str(token)).lemmatize("v") == Word(keyword).lemmatize("v")):
-                        keyword_found = True
-                    if token.dep_ == 'neg':
-                        neg = not neg
+                antonym_set = set()
+                for word in nlp(relevant_sentence):
+                    if str(word) not in stopwords.words('english'):
+                        word_set = self.word_antonyms(word)
+                        antonym_set = antonym_set.union(word_set)
 
-                if keyword_found:
-                    if neg: return "No"
+                opposite = False
+                for token in qcorpus[1:]:
+                    stem = ps.stem(str(token))
+                    if stem in antonym_set:
+                        opposite = not opposite
+
+                if self.is_neg(tk.string) == self.is_neg(relevant_sentence):
+                    if opposite == True: return "No"
                     else: return "Yes"
-                return "No"
+                else: return "No"
 
             #REASON (WHY)
             #NOTE: Probably don't have to do this, oddball questins
@@ -229,6 +246,16 @@ Sirius will take its turn as the South Pole Star in the year 66,270 AD. In fact,
     print("Q5 Answer:   \"", q5_ans, "\"", sep="")
     print("Q5 Solution: \"Yes\"")
     print("---------------------")
+
+    q6_corpus = "The student wearing the white shirt was an interesting person"
+    q6_answerer = Answer(q6_corpus)
+    q6_question = "Was the student a boring person?"
+    q6_ans = q6_answerer.answer_question(q6_question)
+    print("Q6 Question: \"", q6_question, "\"", sep="")
+    print("Q6 Answer:   \"", q6_ans, "\"", sep="")
+    print("Q6 Solution: \"No\"")
+    print("---------------------")
+
 def test_file():
     pass
 if __name__ == "__main__":
