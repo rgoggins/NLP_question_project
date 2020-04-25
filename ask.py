@@ -17,6 +17,7 @@ import sys
 import random
 from tokenizer import *
 import nltk
+from textblob import TextBlob
 
 # Passed in documents and a number 'n' of questions we are required to generate
 # Load in the tokenized data
@@ -25,7 +26,7 @@ import nltk
 # Split up questions equally into Who? What? Is/was? (only binary questions for now)
 # A question should have its answer in a single sentence
 
-
+count = 0
 tokenized_data = None # call whatever tokenizer.py function gets the data
 num_questions = 10 # this is also passed in
 
@@ -147,6 +148,9 @@ def generate_who_question(root_sentence, man, woman, entity):
 
 def generate_binary_question(root_sentence):
     phrase = "Is it correct that "
+    if (count % 2 == 0):
+        phrase = "Is it true that "
+    count += 1
     sent_frag = str(root_sentence)
     def fn_replacement(m):
         value = m.group(0)
@@ -241,3 +245,8 @@ if __name__ == "__main__":
     print("\n")
     for question in questions:
         print(str(question))
+
+    # s = "After independence, the government of India instituted the following conventions: standardisation of grammar: In 1954, the Government of India set up a committee to prepare a grammar of Hindi; The committee's report was released in 1958 as A Basic Grammar of Modern Hindi."
+    # print("\nSentence:\n" + s)
+    # newtk = TextBlob(s)
+    # print(str(newtk.sentences[0].tags))
