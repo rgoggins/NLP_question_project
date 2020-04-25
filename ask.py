@@ -219,6 +219,7 @@ if __name__ == "__main__":
 
     index = 0
     count = 0
+    turn = 0
 
     while (len(questions) < num_questions):
         iter = (index // len(tk.blob.sentences))
@@ -226,24 +227,28 @@ if __name__ == "__main__":
         print("Sentence: " + str(sen))
         print("Sentence tags: " + str(sen.tags))
         print("\n")
-        if (index % 3 == 0):
+        if (turn % 3 == 0):
             if (meets_binary_crit(sen, iter)):
                 output = generate_binary_question(sen, count)
                 if (output not in questions):
                     count += 1
-                    questions.append(output)
-                    sentence_roots.append(sen)
-        elif (index % 3 == 1):
-            if (meets_who_crit(sen, iter)):
-                output = generate_who_question(sen, man, woman, entity)
-                if (output != None) and (output not in questions):
+                    turn += 1
                     questions.append(output)
                     sentence_roots.append(sen)
 
-        elif (index % 3 == 2):
+        elif (turn % 3 == 1):
+            if (meets_who_crit(sen, iter)):
+                output = generate_who_question(sen, man, woman, entity)
+                if (output != None) and (output not in questions):
+                    turn += 1
+                    questions.append(output)
+                    sentence_roots.append(sen)
+
+        elif (turn % 3 == 2):
             if (meets_when_crit(sen, iter)):
                 output = generate_when_question(sen)
                 if (output != None) and (output not in questions):
+                    turn += 1
                     questions.append(output)
                     sentence_roots.append(sen)
 
