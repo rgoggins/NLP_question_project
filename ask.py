@@ -53,14 +53,12 @@ def generate_when_question(root_sentence):
 
     sentencestr = str(root_sentence).split()
     newsent = []
-    print("Sentence: " + str(sentencestr))
 
     for i, word in enumerate(sentencestr):
         if (len(word) == 4 and word.isdigit() and (word[:2] in ["18", "19", "20"])):
             year = int(word)
             ind = i
             # replace it
-            print("Previous: " + str(sentencestr[i-1]))
             if (i > 0) and (i < len(root_sentence.words) - 1):
                 if (sen.tags[i-1][1] == "NN") and (sen.tags[i+1][1] == "NN"):
                     return None
