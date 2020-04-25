@@ -20,8 +20,19 @@ from spacy import load
 # from tokenizer import *
 from textblob import Word
 from textblob import TextBlob
-EN_CORE_WEB_VERSION = "lg" #'sm', 'md', or 'lg' -- change this to whatever
+EN_CORE_WEB_VERSION = "md" #'sm', 'md', or 'lg' -- change this to whatever
 nlp = load("en_core_web_" + EN_CORE_WEB_VERSION)
+# from tokenizer import *
+# DBG = True
+'''
+@file answer.py
+@brief A python script for generating answers to a series of questions
+11-411: Natural Language Processing
+@author Oliver Pennington <oop@cmu.edu>
+@author Ryan Goggins <goggins@cmu.edu>
+@author Casey Al-Haddad <chaddad@andrew.cmu.edu>
+@author Justin Lee <justinl2@andrew.cmu.edu>
+'''
 # from tokenizer import *
 # DBG = True
 PERSON_QUESTION = "PERSON"
@@ -32,6 +43,7 @@ OBJECT_QUESTION = "OBJECT"
 WHO_IS_QUESTION = "WHO IS"
 OTHER = "OTHER"
 QUANTITY_QUESTION = "QUANT"
+
 person_tags = ["PERSON"]
 place_tags = ["GPE", "LOC"]
 object_tags = ["ORG", "GPE", "LOC"]
@@ -56,13 +68,16 @@ class Answer:
                         if  cands == found_s:
                             return (True, found_s)
         return (False, "")
+
     def get_relevant_sentences(self, question):
         a = set(TextBlob(question).words)
         snts = self.tb.sentences
         return sorted(snts, key = lambda sent: (len(a - set(sent.words)), len(list(TextBlob(question).words))))
+
     def get_relevant_sentence(self, question):
         most_relevant = None
         lowest_edit_dist = float('inf')
+
         a = set(TextBlob(question).words)
         for sent in self.tb.sentences:
             sentstr = str(sent)
@@ -73,7 +88,9 @@ class Answer:
             if (levenshtein < lowest_edit_dist):
                 lowest_edit_dist = levenshtein
                 most_relevant = sent
+
         return most_relevant
+
     def identify_question_type(self, qcorpus):
         person_words = ["who", "whom", "whose"]
         individual_words = ["person","pharoah", "congressman", "president", "leader", "senator", "actor", "businessman", "author"] #TODO
@@ -181,6 +198,8 @@ class Answer:
             ci += 1
 #             print(sub, ci)
         return min(ans, key = lambda x: abs(x - ind), default = abs(-1 - ind))
+
+
     def centrality_measure(self, ind, ent, sentence, spe):
 #         print("CM")
         imp_phrase = list(list(sentence.noun_chunks)[0])
@@ -191,6 +210,7 @@ class Answer:
 #         if imp_phrase_str in str(spe.text.lower()):
 #             word_ind = str(spe.text.lower()).find(ent.text.lower())
 #             imp_word_ind = find_closest_ind(str(spe.text.lower()), (imp_phrase_str), word_ind)
+
 #             return abs(imp_word_ind - word_ind)
 #         print(imp_phrase)
         for imp_word in imp_phrase:
@@ -207,12 +227,14 @@ class Answer:
 #             print(score, ent.text, imp_word, word_ind, imp_word_ind, spe)
         return tot_score
 #         return ind
+
     def select_best(self, spe, tags, question, rs):
         match_entities = []
         for i, entity in enumerate(spe):
             if entity.label_ in tags and str(entity.text).lower() not in str(question.text).lower():
                 match_entities.append((self.centrality_measure(i,entity,question, rs), entity))
         return min(match_entities, key=lambda obj: obj[0], default=(None, None))[1]
+
     def answer_person_question(self, question, relevant_sentences):
         for sp in relevant_sentences:
             rs = nlp(str(sp))
@@ -225,6 +247,7 @@ class Answer:
 #                     print(str(entity.text.lower()), str(question).lower())
 #                     return entity.text
         return None
+
     def answer_place_question(self, question, relevant_sentences):
         for sp in relevant_sentences:
             rs = nlp(str(sp))
@@ -236,6 +259,7 @@ class Answer:
 #                 if entity.label_ in place_tags:
 #                     return entity.text
         return None
+
     def answer_time_question(self,question, relevant_sentences):
         for sp in relevant_sentences:
             rs = nlp(str(sp))
@@ -254,6 +278,7 @@ class Answer:
 #                 if entity.label_ in ["CARDINAL"]:
 #                     return entity.text
         return None
+
     def answer_arb_question(self, question, relevant_sentences):
         return relevant_sentences[0]
 #         for sp in relevant_sentences:
@@ -261,6 +286,7 @@ class Answer:
 #             for entity in selected_passage_ents:
 #                 return entity.text
 #         return None
+
     def answer_quantity_question(self, question, relevant_sentences):
         tags = ["QUANTITY", "CARDINAL", "MONEY", "PERCENT", "ORDINAL"]
         relevant_sents = [nlp(str(sp)) for sp in relevant_sentences]
@@ -278,6 +304,7 @@ class Answer:
                 if best != None:
                     return best.text
         return None
+
     def answer_yes_no_question(self, qcorpus, tk, relevant_sentences):
         relevant_sentence = nlp(str(relevant_sentences[0]))
         q_tags = tk.tags
@@ -287,6 +314,7 @@ class Answer:
             if tag[0] == 'N' or tag[0] == "V":
                 keyword = token
                 key_tag = tag
+
         keyword_found = False
         neg = False
         for token in relevant_sentence:
@@ -294,6 +322,7 @@ class Answer:
                 keyword_found = True
             if token.dep_ == 'neg':
                 neg = not neg
+
         if keyword_found:
             if neg: return "No"
             else: return "Yes"
@@ -311,6 +340,7 @@ class Answer:
                             continue
                     return str(s)
         return None
+
     #NOTE: final version will only have self and question parameter.
     def answer_question(self, question):
         #tokenize question
@@ -318,9 +348,12 @@ class Answer:
         qcorpus = nlp(question)
         #get sentence most relevant to the question
         relevant_sentence = str(self.get_relevant_sentence(question))
+
         #Identify question type:
         qType = self.identify_question_type(qcorpus)
+
         #WHICH?????
+
         # selected_passage_ents = nlp(relevant_sentence).ents
         # for entity in selected_passage_ents:
         #     print(entity.text, entity.label_)
@@ -343,6 +376,7 @@ class Answer:
                 answer = self.answer_who_is_question(qcorpus, spes) #TODO change this
             else:
                 answer = self.answer_arb_question(qcorpus, spes)
+
             if answer == None:
                 answer = self.answer_arb_question(qcorpus, spes)
                 if answer == None:
