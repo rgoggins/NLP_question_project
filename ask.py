@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 '''
 @file ask.py
 @brief A python script for generating questions about a given document
@@ -165,7 +165,7 @@ def gen_when(f):
     le = set([(x.text.strip()) for x in list(nlp(f).ents) if str(x.label_) in ["DATE","TIME"]])
     qcands = []
     for sent in TextBlob(f).sentences:
-        ssent = str(sent).strip()
+        ssent = str(sent).strip().replace(".", "")
         keywords = ["on", "in", "during"]
         is_cand = any([ssent.lower().find(keyword) == 0 for keyword in keywords])
         if is_cand:
